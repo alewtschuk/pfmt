@@ -1,0 +1,91 @@
+package github.com/alewtschuk/pfmt
+
+import (
+	"fmt"
+	"strings"
+)
+
+var colorMap = make(map[string]string)
+var formatString = "%co"
+
+// Initialize the color map with ANSI escape codes
+func initMap() {
+	colorMap["RESET"] = "\u001B[0m"
+	colorMap["BLACK"] = "\u001B[30m"
+	colorMap["RED"] = "\u001B[31m"
+	colorMap["GREEN"] = "\u001B[32m"
+	colorMap["YELLOW"] = "\u001B[33m"
+	colorMap["BLUE"] = "\u001B[34m"
+	colorMap["PURPLE"] = "\u001B[35m"
+	colorMap["CYAN"] = "\u001B[36m"
+	colorMap["WHITE"] = "\u001B[37m"
+}
+
+// Printc prints the formatted string in the specified color.
+// The color will reset after printing the specified string
+func Printc(format string, color string) (int, error) {
+	initMap()
+	color = strings.ToUpper(color)
+	return fmt.Print(colorMap[color] + format + colorMap["RESET"])
+}
+
+// Printcln prints the formatted string in the specified color with a new line.
+// The color will reset after printing the specified string
+func Printcln(format string, color string) (int, error) {
+	initMap()
+	color = strings.ToUpper(color)
+	return fmt.Println(colorMap[color] + format + colorMap["RESET"])
+}
+
+// Printm prints the formatted string in the specified colors.
+// Utilizes the format string "%h"(hue) to determine where to apply the colors.
+func Printmc(format string, a ...any) {
+	initMap()
+	var colorCount int = 0
+	var color string
+	var colorStrings []string
+	colorStrings = strings.Split(format, "%h")
+
+	for _, segement := range colorStrings {
+		fmt.Print(segement)
+		if colorCount < len(a) {
+			color = strings.ToUpper(a[colorCount].(string))
+			if colorCode, exists := colorMap[color]; exists {
+
+				format = strings.Replace(format, "%h", colorCode, 1)
+			} else {
+				fmt.Print(colorMap["RESET"])
+			}
+			fmt.Print(colorMap[color])
+			colorCount++
+		}
+	}
+	fmt.Print(colorMap["RESET"])
+}
+
+// Printmcln utilizes the format string "%h"(hue) to determine where to apply colors to the string.
+// Prints the formatted string in the specified colors and adds a new line.
+func Printmcln(format string, a ...any) {
+	initMap()
+	var colorCount int = 0
+	var color string
+	var colorStrings []string
+	colorStrings = strings.Split(format, "%h")
+
+	for _, segement := range colorStrings {
+		fmt.Print(segement)
+		if colorCount < len(a) {
+			color = strings.ToUpper(a[colorCount].(string))
+			if colorCode, exists := colorMap[color]; exists {
+
+				format = strings.Replace(format, "%h", colorCode, 1)
+			} else {
+				fmt.Print(colorMap["RESET"])
+			}
+			fmt.Print(colorMap[color])
+			colorCount++
+		}
+	}
+	fmt.Print(colorMap["RESET"])
+	fmt.Println()
+}
