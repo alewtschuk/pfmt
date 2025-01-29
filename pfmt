@@ -87,3 +87,31 @@ func Printmcln(format string, a ...any) {
 	fmt.Print(colorMap["RESET"])
 	fmt.Println()
 }
+
+// ApplyColor applies the specified color to the input string.
+// Returns the string with the specified color applied.
+// Color choices: BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE
+func ApplyColor(format string, color string) string {
+	initMap()
+	format = StripColor(format)
+	color = strings.ToUpper(color)
+	format = colorMap[color] + format + colorMap["RESET"]
+	return format
+}
+
+// StripColor removes the color from the input string
+func StripColor(format string) string {
+	r := strings.NewReplacer(
+		"\u001B[30m", "",
+		"\u001B[31m", "",
+		"\u001B[32m", "",
+		"\u001B[33m", "",
+		"\u001B[34m", "",
+		"\u001B[35m", "",
+		"\u001B[36m", "",
+		"\u001B[37m", "",
+		"\u001B[0m", "",
+	)
+	return r.Replace(format)
+}
+
