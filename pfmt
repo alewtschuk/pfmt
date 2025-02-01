@@ -115,3 +115,14 @@ func StripColor(format string) string {
 	return r.Replace(format)
 }
 
+
+// Checks if the input color is valid
+func IsColorValid(color string) bool {
+	initMap()
+	color = strings.ToUpper(color)
+	if _, exists := colorMap[color]; exists {
+		return true
+	} else {
+		return false
+	}
+}
