@@ -6,6 +6,7 @@ import (
 )
 
 var colorMap = make(map[string]string)
+var fontMap = map[string]string{}
 
 // Initialize the color map with ANSI escape codes
 func initMap() {
