@@ -1,129 +1,161 @@
-package github.com/alewtschuk/pfmt
+package cfmt
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 )
 
-var colorMap = make(map[string]string)
-var fontMap = map[string]string{}
+var colorMap = make(map[int]string, 231)
+var fontMap = make(map[string]string, 5)
 
 // Initialize the color map with ANSI escape codes
-func initMap() {
-	colorMap["RESET"] = "\u001B[0m"
-	colorMap["BLACK"] = "\u001B[30m"
-	colorMap["RED"] = "\u001B[31m"
-	colorMap["GREEN"] = "\u001B[32m"
-	colorMap["YELLOW"] = "\u001B[33m"
-	colorMap["BLUE"] = "\u001B[34m"
-	colorMap["PURPLE"] = "\u001B[35m"
-	colorMap["CYAN"] = "\u001B[36m"
-	colorMap["WHITE"] = "\u001B[37m"
+func initColorMap() []int {
+	var keys []int           // Slice to hold the keys in order of insertion
+	colorMap[-1] = "\x1b[0m" // Add reset color as key -1
+	for i := 0; i <= 231; i++ {
+		keys = append(keys, i)
+		colorMap[i] = fmt.Sprintf("\x1b[38;5;%dm", i) // ANSI escape character for coloring with 256 options. Note that greyscale 256 values are not supported
+	}
+	return keys
+}
+
+// Initialize the font map with ANSI escape codes
+// for font styling
+func InitFontMap() {
+	fontMap["RESET"] = "\x1b[0m"
+	fontMap["BOLD"] = "\x1b[1m"
+	fontMap["UNDERLINE"] = "\x1b[4m"
+	fontMap["ITALIC"] = "\x1b[3m"
 }
 
 // Printc prints the formatted string in the specified color.
 // The color will reset after printing the specified string
-func Printc(format string, color string) (int, error) {
-	initMap()
-	color = strings.ToUpper(color)
-	return fmt.Print(colorMap[color] + format + colorMap["RESET"])
+func Printc(format string, color int) (int, error) {
+	initColorMap()
+	return fmt.Print(colorMap[color] + format + colorMap[-1])
 }
 
 // Printcln prints the formatted string in the specified color with a new line.
 // The color will reset after printing the specified string
-func Printcln(format string, color string) (int, error) {
-	initMap()
-	color = strings.ToUpper(color)
-	return fmt.Println(colorMap[color] + format + colorMap["RESET"])
+func Printcln(format string, color int) (int, error) {
+	initColorMap()
+	return fmt.Println(colorMap[color] + format + colorMap[-1])
 }
 
 // Printm prints the formatted string in the specified colors.
 // Utilizes the format string "%h"(hue) to determine where to apply the colors.
 func Printmc(format string, a ...any) {
-	initMap()
+	initColorMap()
 	var colorCount int = 0
-	var color string
+	var color int
 	var colorStrings []string
 	colorStrings = strings.Split(format, "%h")
 
 	for _, segement := range colorStrings {
 		fmt.Print(segement)
 		if colorCount < len(a) {
-			color = strings.ToUpper(a[colorCount].(string))
 			if colorCode, exists := colorMap[color]; exists {
 				format = strings.Replace(format, "%h", colorCode, 1)
 			} else {
-				fmt.Print(colorMap["RESET"])
+				fmt.Print(colorMap[-1])
 			}
 			fmt.Print(colorMap[color])
 			colorCount++
 		}
 	}
-	fmt.Print(colorMap["RESET"])
+	fmt.Print(colorMap[-1])
 }
 
 // Printmcln utilizes the format string "%h"(hue) to determine where to apply colors to the string.
 // Prints the formatted string in the specified colors and adds a new line.
 func Printmcln(format string, a ...any) {
-	initMap()
+	initColorMap()
 	var colorCount int = 0
-	var color string
+	var color int
 	var colorStrings []string
 	colorStrings = strings.Split(format, "%h")
 
 	for _, segement := range colorStrings {
 		fmt.Print(segement)
 		if colorCount < len(a) {
-			color = strings.ToUpper(a[colorCount].(string))
 			if colorCode, exists := colorMap[color]; exists {
 
 				format = strings.Replace(format, "%h", colorCode, 1)
 			} else {
-				fmt.Print(colorMap["RESET"])
+				fmt.Print(colorMap[-1])
 			}
 			fmt.Print(colorMap[color])
 			colorCount++
 		}
 	}
-	fmt.Print(colorMap["RESET"])
+	fmt.Print(colorMap[-1])
 	fmt.Println()
 }
+
+//func CustomFormat(format string)
 
 // ApplyColor applies the specified color to the input string.
 // Returns the string with the specified color applied.
 // Color choices: BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE
-func ApplyColor(format string, color string) string {
-	initMap()
+func ApplyColor(format string, color int) string {
+	initColorMap()
 	format = StripColor(format)
-	color = strings.ToUpper(color)
-	format = colorMap[color] + format + colorMap["RESET"]
+	format = colorMap[color] + format + colorMap[-1]
 	return format
 }
 
-// StripColor removes the color from the input string
+// Removes the color from the input string
 func StripColor(format string) string {
-	r := strings.NewReplacer(
-		"\u001B[30m", "",
-		"\u001B[31m", "",
-		"\u001B[32m", "",
-		"\u001B[33m", "",
-		"\u001B[34m", "",
-		"\u001B[35m", "",
-		"\u001B[36m", "",
-		"\u001B[37m", "",
-		"\u001B[0m", "",
-	)
-	return r.Replace(format)
+	for i := -1; i <= 231; i++ {
+		format = strings.Replace(format, colorMap[i], "", -1)
+	}
+	return format
 }
 
-
 // Checks if the input color is valid
-func IsColorValid(color string) bool {
-	initMap()
-	color = strings.ToUpper(color)
+func IsColorValid(color int) bool {
+	initColorMap()
 	if _, exists := colorMap[color]; exists {
 		return true
 	} else {
 		return false
 	}
+}
+
+func AvailableColors() {
+	var keys = initColorMap()
+	for k := range keys {
+		fmt.Println(colorMap[k] + strconv.Itoa(k) + colorMap[-1])
+	}
+}
+
+// Loader function to display a loading animation, just used as a temp
+// function till possible later integration
+func Loader() {
+	for i := 0; i < 10; i++ {
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠋", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠙", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠹", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠸", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠼", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠴", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠦", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠧", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠇", i))
+		time.Sleep(30 * time.Millisecond)
+		fmt.Print("\x1b[1m" + strings.Repeat("\r⠏", i))
+		time.Sleep(30 * time.Millisecond)
+	}
+	fmt.Print("\r ")
+	fmt.Println()
 }
