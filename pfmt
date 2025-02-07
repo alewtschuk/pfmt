@@ -1,6 +1,7 @@
-package cfmt
+package github.com/alewtschuk/pfmt
 
 import (
+	"chatserver/sliceutils"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,6 +12,9 @@ var colorMap = make(map[int]string, 231)
 var fontMap = make(map[string]string, 5)
 
 // Initialize the color map with ANSI escape codes
+// returns a slice of the keys in order of insertion
+// function can be called without return value being assigned to a variable
+// and will still initialize the color map
 func initColorMap() []int {
 	var keys []int           // Slice to hold the keys in order of insertion
 	colorMap[-1] = "\x1b[0m" // Add reset color as key -1
@@ -33,74 +37,82 @@ func InitFontMap() {
 // Printc prints the formatted string in the specified color.
 // The color will reset after printing the specified string
 func Printc(format string, color int) (int, error) {
-	initColorMap()
+	if _, exists := colorMap[color]; !exists {
+		initColorMap()
+	}
 	return fmt.Print(colorMap[color] + format + colorMap[-1])
 }
 
 // Printcln prints the formatted string in the specified color with a new line.
 // The color will reset after printing the specified string
 func Printcln(format string, color int) (int, error) {
-	initColorMap()
+	if _, exists := colorMap[color]; !exists {
+		initColorMap()
+	}
 	return fmt.Println(colorMap[color] + format + colorMap[-1])
 }
 
 // Printm prints the formatted string in the specified colors.
 // Utilizes the format string "%h"(hue) to determine where to apply the colors.
-func Printmc(format string, a ...any) {
-	initColorMap()
+func Printmc(format string, a ...int) {
 	var colorCount int = 0
-	var color int
 	var colorStrings []string
-	colorStrings = strings.Split(format, "%h")
+	colorStrings = strings.Split(format, "%h")         // Split the format string into substrings at "%h"
+	colorStrings = sliceutils.Remove("", colorStrings) // Remove any empty strings from the slice\
 
-	for _, segement := range colorStrings {
-		fmt.Print(segement)
+	// Iterate over the substrings, color them and print them
+	for _, substring := range colorStrings {
 		if colorCount < len(a) {
-			if colorCode, exists := colorMap[color]; exists {
-				format = strings.Replace(format, "%h", colorCode, 1)
-			} else {
-				fmt.Print(colorMap[-1])
+			if _, exists := colorMap[a[colorCount]]; !exists { // Check to see if the color map has been initialized and init if it is not
+				initColorMap()
 			}
-			fmt.Print(colorMap[color])
+			if colorCode, exists := colorMap[a[colorCount]]; exists { // Check if the color code exists in the map. Uses the value of a at index colorCount to get the color code
+				fmt.Print(colorCode)
+			} else {
+				fmt.Print(colorMap[-1]) // If the color code does not exist, print the reset color
+			}
 			colorCount++
 		}
+		fmt.Print(substring) // Print the substring after the color code has been applied
 	}
 	fmt.Print(colorMap[-1])
 }
 
 // Printmcln utilizes the format string "%h"(hue) to determine where to apply colors to the string.
 // Prints the formatted string in the specified colors and adds a new line.
-func Printmcln(format string, a ...any) {
+func Printmcln(format string, a ...int) {
 	initColorMap()
 	var colorCount int = 0
-	var color int
 	var colorStrings []string
 	colorStrings = strings.Split(format, "%h")
+	colorStrings = sliceutils.Remove("", colorStrings)
 
-	for _, segement := range colorStrings {
-		fmt.Print(segement)
+	for _, substring := range colorStrings {
 		if colorCount < len(a) {
-			if colorCode, exists := colorMap[color]; exists {
-
-				format = strings.Replace(format, "%h", colorCode, 1)
+			if _, exists := colorMap[a[colorCount]]; !exists {
+				initColorMap()
+			}
+			if colorCode, exists := colorMap[a[colorCount]]; exists {
+				fmt.Print(colorCode)
 			} else {
 				fmt.Print(colorMap[-1])
 			}
-			fmt.Print(colorMap[color])
 			colorCount++
 		}
+		fmt.Print(substring)
 	}
 	fmt.Print(colorMap[-1])
-	fmt.Println()
+	fmt.Println() // This is literally the only change from Printmc
 }
 
 //func CustomFormat(format string)
 
 // ApplyColor applies the specified color to the input string.
 // Returns the string with the specified color applied.
-// Color choices: BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE
 func ApplyColor(format string, color int) string {
-	initColorMap()
+	if _, exists := colorMap[color]; !exists {
+		initColorMap()
+	}
 	format = StripColor(format)
 	format = colorMap[color] + format + colorMap[-1]
 	return format
@@ -108,7 +120,7 @@ func ApplyColor(format string, color int) string {
 
 // Removes the color from the input string
 func StripColor(format string) string {
-	for i := -1; i <= 231; i++ {
+	for i := 0; i <= 231; i++ {
 		format = strings.Replace(format, colorMap[i], "", -1)
 	}
 	return format
@@ -116,7 +128,9 @@ func StripColor(format string) string {
 
 // Checks if the input color is valid
 func IsColorValid(color int) bool {
-	initColorMap()
+	if _, exists := colorMap[color]; !exists {
+		initColorMap()
+	}
 	if _, exists := colorMap[color]; exists {
 		return true
 	} else {
@@ -124,6 +138,7 @@ func IsColorValid(color int) bool {
 	}
 }
 
+// Displays all available colors integers 0-231 in their corresponding color
 func AvailableColors() {
 	var keys = initColorMap()
 	for k := range keys {
