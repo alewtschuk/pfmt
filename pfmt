@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var colorMap = make(map[int]string, 231)
+var colorMap = make(map[int]string, 464)
 var fontMap = make(map[string]string, 5)
 
 // Initialize the color map with ANSI escape codes
@@ -16,12 +16,20 @@ var fontMap = make(map[string]string, 5)
 // function can be called without return value being assigned to a variable
 // and will still initialize the color map
 func initColorMap() []int {
-	var keys []int           // Slice to hold the keys in order of insertion
-	colorMap[-1] = "\x1b[0m" // Add reset color as key -1
-	for i := 0; i <= 231; i++ {
+	var keys []int // Slice to hold the keys in order of insertion
+	for i := -231; i <= 231; i++ {
 		keys = append(keys, i)
-		colorMap[i] = fmt.Sprintf("\x1b[38;5;%dm", i) // ANSI escape character for coloring with 256 options. Note that greyscale 256 values are not supported
+		if i == -1 {
+			colorMap[i] = "\x1b[0m" // Add reset color as key -1
+		} else if i < 0 {
+			colorMap[i] = fmt.Sprintf("\x1b[48;5;%dm", -i) // ANSI escape character for background coloring with 256 options. Note that greyscale 256 values are not supported
+		} else if i == 0 {
+			colorMap[i] = "\x1b[38;5;0m" // ANSI escape character for resetting color
+		} else {
+			colorMap[i] = fmt.Sprintf("\x1b[38;5;%dm", i) // ANSI escape character for coloring with 256 options.
+		}
 	}
+	fmt.Println("Map initialized")
 	return keys
 }
 
@@ -38,18 +46,22 @@ func InitFontMap() {
 // The color will reset after printing the specified string
 func Printc(format string, color int) (int, error) {
 	if _, exists := colorMap[color]; !exists {
+		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
 		initColorMap()
 	}
-	return fmt.Print(colorMap[color] + format + colorMap[-1])
+	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1]) // Containerizes as its own string
+	return fmt.Print(s)
 }
 
 // Printcln prints the formatted string in the specified color with a new line.
 // The color will reset after printing the specified string
 func Printcln(format string, color int) (int, error) {
 	if _, exists := colorMap[color]; !exists {
+		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
 		initColorMap()
 	}
-	return fmt.Println(colorMap[color] + format + colorMap[-1])
+	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1])
+	return fmt.Println(s)
 }
 
 // Printm prints the formatted string in the specified colors.
@@ -64,14 +76,16 @@ func Printmc(format string, a ...int) {
 	for _, substring := range colorStrings {
 		if colorCount < len(a) {
 			if _, exists := colorMap[a[colorCount]]; !exists { // Check to see if the color map has been initialized and init if it is not
+				fmt.Println("Color " + strconv.Itoa(a[colorCount]) + " does not exist. Map not initialized")
 				initColorMap()
 			}
-			if colorCode, exists := colorMap[a[colorCount]]; exists { // Check if the color code exists in the map. Uses the value of a at index colorCount to get the color code
+			if colorCode, exists := colorMap[a[colorCount]]; exists {
 				fmt.Print(colorCode)
-			} else {
-				fmt.Print(colorMap[-1]) // If the color code does not exist, print the reset color
+				fmt.Print(substring)
+				fmt.Print(colorMap[-1])
+				colorCount++
+				continue
 			}
-			colorCount++
 		}
 		fmt.Print(substring) // Print the substring after the color code has been applied
 	}
@@ -81,7 +95,6 @@ func Printmc(format string, a ...int) {
 // Printmcln utilizes the format string "%h"(hue) to determine where to apply colors to the string.
 // Prints the formatted string in the specified colors and adds a new line.
 func Printmcln(format string, a ...int) {
-	initColorMap()
 	var colorCount int = 0
 	var colorStrings []string
 	colorStrings = strings.Split(format, "%h")
@@ -90,16 +103,17 @@ func Printmcln(format string, a ...int) {
 	for _, substring := range colorStrings {
 		if colorCount < len(a) {
 			if _, exists := colorMap[a[colorCount]]; !exists {
+				fmt.Println("Color " + strconv.Itoa(a[colorCount]) + " does not exist. Map not initialized")
 				initColorMap()
 			}
 			if colorCode, exists := colorMap[a[colorCount]]; exists {
 				fmt.Print(colorCode)
-			} else {
+				fmt.Print(substring)
 				fmt.Print(colorMap[-1])
+				colorCount++
+				continue
 			}
-			colorCount++
 		}
-		fmt.Print(substring)
 	}
 	fmt.Print(colorMap[-1])
 	fmt.Println() // This is literally the only change from Printmc
@@ -111,6 +125,7 @@ func Printmcln(format string, a ...int) {
 // Returns the string with the specified color applied.
 func ApplyColor(format string, color int) string {
 	if _, exists := colorMap[color]; !exists {
+		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
 		initColorMap()
 	}
 	format = StripColor(format)
@@ -120,8 +135,12 @@ func ApplyColor(format string, color int) string {
 
 // Removes the color from the input string
 func StripColor(format string) string {
-	for i := 0; i <= 231; i++ {
-		format = strings.Replace(format, colorMap[i], "", -1)
+	var keys = initColorMap()
+
+	for k := keys[0]; k <= keys[len(keys)-1]; k++ {
+		if k != -1 { // Don't remove the reset sequence itself
+			format = strings.Replace(format, colorMap[k], "", -1) // Also remove background colors
+		}
 	}
 	return format
 }
@@ -129,6 +148,7 @@ func StripColor(format string) string {
 // Checks if the input color is valid
 func IsColorValid(color int) bool {
 	if _, exists := colorMap[color]; !exists {
+		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
 		initColorMap()
 	}
 	if _, exists := colorMap[color]; exists {
@@ -141,7 +161,7 @@ func IsColorValid(color int) bool {
 // Displays all available colors integers 0-231 in their corresponding color
 func AvailableColors() {
 	var keys = initColorMap()
-	for k := range keys {
+	for k := keys[0]; k <= keys[len(keys)-1]; k++ {
 		fmt.Println(colorMap[k] + strconv.Itoa(k) + colorMap[-1])
 	}
 }
