@@ -68,6 +68,12 @@ func Printcln(format string, color int) (int, error) {
 func Printmc(format string, a ...int) {
 	var colorCount int = 0
 	var colorStrings []string
+	var newline string = ""
+	//Checks if the format string ends with a newline to handle newline edgecase
+	if strings.HasSuffix(format, "\n") {
+		format = strings.TrimSuffix(format, "\n")
+		newline = "\n"
+	}
 	colorStrings = strings.Split(format, "%h")         // Split the format string into substrings at "%h"
 	colorStrings = sliceutils.Remove("", colorStrings) // Remove any empty strings from the slice\
 
@@ -83,7 +89,7 @@ func Printmc(format string, a ...int) {
 			}
 		}
 	}
-	fmt.Print(colorMap[-1])
+	fmt.Print(colorMap[-1] + newline)
 }
 
 // Printmcln utilizes the format string "%h"(hue) to determine where to apply colors to the string.
