@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var colorMap = make(map[int]string, 464)
 var fontMap = make(map[string]string, 5)
+var keys []int = initColorMap()
 
 // Initialize the color map with ANSI escape codes
 // returns a slice of the keys in order of insertion
@@ -45,10 +45,6 @@ func InitFontMap() {
 // Printc prints the formatted string in the specified color.
 // The color will reset after printing the specified string
 func Printc(format string, color int) (int, error) {
-	if _, exists := colorMap[color]; !exists {
-		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
-		initColorMap()
-	}
 	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1]) // Containerizes as its own string
 	return fmt.Print(s)
 }
@@ -56,10 +52,6 @@ func Printc(format string, color int) (int, error) {
 // Printcln prints the formatted string in the specified color with a new line.
 // The color will reset after printing the specified string
 func Printcln(format string, color int) (int, error) {
-	if _, exists := colorMap[color]; !exists {
-		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
-		initColorMap()
-	}
 	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1])
 	return fmt.Println(s)
 }
@@ -75,11 +67,7 @@ func Printmc(format string, a ...int) {
 	// Iterate over the substrings, color them and print them
 	for _, substring := range colorStrings {
 		if colorCount < len(a) {
-			if _, exists := colorMap[a[colorCount]]; !exists { // Check to see if the color map has been initialized and init if it is not
-				fmt.Println("Color " + strconv.Itoa(a[colorCount]) + " does not exist. Map not initialized")
-				initColorMap()
-			}
-			if colorCode, exists := colorMap[a[colorCount]]; exists {
+			if colorCode, exists := colorMap[a[colorCount]]; exists { //If the color exists print the color, substring, and reset
 				fmt.Print(colorCode)
 				fmt.Print(substring)
 				fmt.Print(colorMap[-1])
@@ -87,7 +75,6 @@ func Printmc(format string, a ...int) {
 				continue
 			}
 		}
-		fmt.Print(substring) // Print the substring after the color code has been applied
 	}
 	fmt.Print(colorMap[-1])
 }
@@ -102,10 +89,6 @@ func Printmcln(format string, a ...int) {
 
 	for _, substring := range colorStrings {
 		if colorCount < len(a) {
-			if _, exists := colorMap[a[colorCount]]; !exists {
-				fmt.Println("Color " + strconv.Itoa(a[colorCount]) + " does not exist. Map not initialized")
-				initColorMap()
-			}
 			if colorCode, exists := colorMap[a[colorCount]]; exists {
 				fmt.Print(colorCode)
 				fmt.Print(substring)
@@ -124,10 +107,6 @@ func Printmcln(format string, a ...int) {
 // ApplyColor applies the specified color to the input string.
 // Returns the string with the specified color applied.
 func ApplyColor(format string, color int) string {
-	if _, exists := colorMap[color]; !exists {
-		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
-		initColorMap()
-	}
 	format = StripColor(format)
 	format = colorMap[color] + format + colorMap[-1]
 	return format
@@ -135,8 +114,6 @@ func ApplyColor(format string, color int) string {
 
 // Removes the color from the input string
 func StripColor(format string) string {
-	var keys = initColorMap()
-
 	for k := keys[0]; k <= keys[len(keys)-1]; k++ {
 		if k != -1 { // Don't remove the reset sequence itself
 			format = strings.Replace(format, colorMap[k], "", -1) // Also remove background colors
@@ -147,10 +124,6 @@ func StripColor(format string) string {
 
 // Checks if the input color is valid
 func IsColorValid(color int) bool {
-	if _, exists := colorMap[color]; !exists {
-		fmt.Println("Color " + strconv.Itoa(color) + " does not exist. Map not initialized")
-		initColorMap()
-	}
 	if _, exists := colorMap[color]; exists {
 		return true
 	} else {
@@ -158,9 +131,8 @@ func IsColorValid(color int) bool {
 	}
 }
 
-// Displays all available colors integers 0-231 in their corresponding color
+// Displays all available colors integers -232-231 in their corresponding color
 func AvailableColors() {
-	var keys = initColorMap()
 	for k := keys[0]; k <= keys[len(keys)-1]; k++ {
 		fmt.Println(colorMap[k] + strconv.Itoa(k) + colorMap[-1])
 	}
@@ -168,29 +140,29 @@ func AvailableColors() {
 
 // Loader function to display a loading animation, just used as a temp
 // function till possible later integration
-func Loader() {
-	for i := 0; i < 10; i++ {
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠋", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠙", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠹", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠸", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠼", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠴", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠦", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠧", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠇", i))
-		time.Sleep(30 * time.Millisecond)
-		fmt.Print("\x1b[1m" + strings.Repeat("\r⠏", i))
-		time.Sleep(30 * time.Millisecond)
-	}
-	fmt.Print("\r ")
-	fmt.Println()
-}
+// func Loader() {
+// 	for i := 0; i < 10; i++ {
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠋", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠙", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠹", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠸", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠼", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠴", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠦", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠧", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠇", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 		fmt.Print("\x1b[1m" + strings.Repeat("\r⠏", i))
+// 		time.Sleep(30 * time.Millisecond)
+// 	}
+// 	fmt.Print("\r ")
+// 	fmt.Println()
+// }
