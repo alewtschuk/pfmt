@@ -45,7 +45,14 @@ func InitFontMap() {
 // Printc prints the formatted string in the specified color.
 // The color will reset after printing the specified string
 func Printc(format string, color int) (int, error) {
-	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1]) // Containerizes as its own string
+	var newline string = ""
+	//Checks if the format string ends with a newline to handle newline edgecase
+	if strings.HasSuffix(format, "\n") {
+		format = strings.TrimSuffix(format, "\n")
+		newline = "\n"
+	}
+
+	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1]+newline) // Containerizes as its own string
 	return fmt.Print(s)
 }
 
