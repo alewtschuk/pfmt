@@ -117,6 +117,48 @@ func Printmcln(format string, a ...int) {
 
 //func CustomFormat(format string)
 
+// Prints the string with specified foreground and background colors.
+// The foreground must be positive
+// The background must be negative
+func Printcfb(format string, foreground int, background int) (int, error) {
+	var s string
+	var newline string = ""
+
+	if strings.HasSuffix(format, "\n") {
+		format = strings.TrimSuffix(format, "\n")
+		newline = "\n"
+	}
+
+	if foreground > 0 && background < -1 {
+		s = fmt.Sprintf("%s%s%s%s", colorMap[foreground], colorMap[background], format, colorMap[-1])
+	} else {
+		return 0, fmt.Errorf("invalid color combination")
+	}
+
+	return fmt.Print(s + newline)
+}
+
+// Prints the string with specified foreground and background colors.
+// The foreground must be positive
+// The background must be negative
+func Printcfbln(format string, foreground int, background int) (int, error) {
+	var s string
+	var newline string = ""
+
+	if strings.HasSuffix(format, "\n") {
+		format = strings.TrimSuffix(format, "\n")
+		newline = "\n"
+	}
+
+	if foreground > 0 && background < -1 {
+		s = fmt.Sprintf("%s%s%s%s", colorMap[foreground], colorMap[background], format, colorMap[-1])
+	} else {
+		return 0, fmt.Errorf("invalid color combination")
+	}
+
+	return fmt.Println(s + newline)
+}
+
 // ApplyColor applies the specified color to the input string.
 // Returns the string with the specified color applied.
 func ApplyColor(format string, color int) string {
@@ -147,7 +189,10 @@ func IsColorValid(color int) bool {
 // Displays all available colors integers -232-231 in their corresponding color
 func AvailableColors() {
 	for k := keys[0]; k <= keys[len(keys)-1]; k++ {
-		fmt.Println(colorMap[k] + strconv.Itoa(k) + colorMap[-1])
+		fmt.Print(colorMap[k] + strconv.Itoa(k) + colorMap[-1])
+		if k >= 0 {
+			fmt.Print(" ")
+		}
 	}
 }
 
