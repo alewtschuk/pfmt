@@ -52,14 +52,14 @@ func Printc(format string, color int) (int, error) {
 		newline = "\n"
 	}
 
-	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1]+newline) // Containerizes as its own string
+	var s string = colorMap[color] + format + colorMap[-1] + newline // Containerizes as its own string
 	return fmt.Print(s)
 }
 
 // Printcln prints the formatted string in the specified color with a new line.
 // The color will reset after printing the specified string
 func Printcln(format string, color int) (int, error) {
-	var s string = fmt.Sprintf("%s", colorMap[color]+format+colorMap[-1])
+	var s string = colorMap[color] + format + colorMap[-1]
 	return fmt.Println(s)
 }
 
