@@ -190,10 +190,11 @@ func IsColorValid(color int) bool {
 func AvailableColors() {
 	for k := keys[0]; k <= keys[len(keys)-1]; k++ {
 		fmt.Print(colorMap[k] + strconv.Itoa(k) + colorMap[-1])
-		if k >= 0 {
+		if k >= -1 {
 			fmt.Print(" ")
 		}
 	}
+	fmt.Println()
 }
 
 // Loader function to display a loading animation, just used as a temp
