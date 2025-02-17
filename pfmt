@@ -1,7 +1,7 @@
 package github.com/alewtschuk/pfmt
 
 import (
-	"chatserver/sliceutils"
+	"chatserver/utils"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,8 +74,8 @@ func Printmc(format string, a ...int) {
 		format = strings.TrimSuffix(format, "\n")
 		newline = "\n"
 	}
-	colorStrings = strings.Split(format, "%h")         // Split the format string into substrings at "%h"
-	colorStrings = sliceutils.Remove("", colorStrings) // Remove any empty strings from the slice\
+	colorStrings = strings.Split(format, "%h")    // Split the format string into substrings at "%h"
+	colorStrings = utils.Remove("", colorStrings) // Remove any empty strings from the slice\
 
 	// Iterate over the substrings, color them and print them
 	for _, substring := range colorStrings {
@@ -98,7 +98,7 @@ func Printmcln(format string, a ...int) {
 	var colorCount int = 0
 	var colorStrings []string
 	colorStrings = strings.Split(format, "%h")
-	colorStrings = sliceutils.Remove("", colorStrings)
+	colorStrings = utils.Remove("", colorStrings)
 
 	for _, substring := range colorStrings {
 		if colorCount < len(a) {
@@ -114,8 +114,6 @@ func Printmcln(format string, a ...int) {
 	fmt.Print(colorMap[-1])
 	fmt.Println() // This is literally the only change from Printmc
 }
-
-//func CustomFormat(format string)
 
 // Prints the string with specified foreground and background colors.
 // The foreground must be positive
