@@ -1,10 +1,11 @@
 package pfmt
 
 import (
-	"chatserver/utils"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/alewtschuk/dsutils"
 )
 
 var colorMap = make(map[int]string, 464)
@@ -74,8 +75,8 @@ func Printmc(format string, a ...int) {
 		format = strings.TrimSuffix(format, "\n")
 		newline = "\n"
 	}
-	colorStrings = strings.Split(format, "%h")    // Split the format string into substrings at "%h"
-	colorStrings = utils.Remove("", colorStrings) // Remove any empty strings from the slice\
+	colorStrings = strings.Split(format, "%h")      // Split the format string into substrings at "%h"
+	colorStrings = dsutils.Remove("", colorStrings) // Remove any empty strings from the slice\
 
 	// Iterate over the substrings, color them and print them
 	for _, substring := range colorStrings {
@@ -98,7 +99,7 @@ func Printmcln(format string, a ...int) {
 	var colorCount int = 0
 	var colorStrings []string
 	colorStrings = strings.Split(format, "%h")
-	colorStrings = utils.Remove("", colorStrings)
+	colorStrings = dsutils.Remove("", colorStrings)
 
 	for _, substring := range colorStrings {
 		if colorCount < len(a) {
