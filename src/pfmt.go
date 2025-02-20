@@ -1,4 +1,4 @@
-package github.com/alewtschuk/pfmt
+package pfmt
 
 import (
 	"chatserver/utils"
@@ -29,7 +29,7 @@ func initColorMap() []int {
 			colorMap[i] = fmt.Sprintf("\x1b[38;5;%dm", i) // ANSI escape character for coloring with 256 options.
 		}
 	}
-	fmt.Println("Map initialized")
+	//fmt.Println("Map initialized")
 	return keys
 }
 
